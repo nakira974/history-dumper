@@ -1,46 +1,46 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
 
 async function getCountriesUsingCurrency(currencyCode: string) {
-  const soapRequest = `
-  <?xml version="1.0" encoding="utf-8"?>
-  <soap12:Envelope xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
-    <soap12:Body>
-      <CountriesUsingCurrency xmlns="http://www.oorsprong.org/websamples.countryinfo">
-        <sISOCurrencyCode>${currencyCode}</sISOCurrencyCode>
-      </CountriesUsingCurrency>
-    </soap12:Body>
-  </soap12:Envelope>
-  `;
+  const data = `<?xml version="1.0" encoding="utf-8"?>
+    <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <CountriesUsingCurrency xmlns="http://www.oorsprong.org/websamples.countryinfo">
+          <sISOCurrencyCode>${currencyCode}</sISOCurrencyCode>
+        </CountriesUsingCurrency>
+      </soap:Body>
+    </soap:Envelope>`;
 
-  const url =
-      'http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso';
-
-  const response = await fetch(url, {
-    method: 'POST',
+  const config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url:
+        'http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso',
     headers: {
-      'Content-Type': 'application/soap+xml;charset=UTF-8',
-      'Accept-Encoding': 'gzip,deflate',
+      'Content-Type': 'text/xml; charset=utf-8',
       SOAPAction:
           'http://www.oorsprong.org/websamples.countryinfo/CountriesUsingCurrency',
     },
-    body: soapRequest,
-  });
+    data,
+  };
 
-  const textData = await response.text();
+  const response = await axios(config);
+  const xmlData = response.data;
 
-  const xmlData = new window.DOMParser().parseFromString(textData, 'text/xml');
-  const tCountryCodeAndName = xmlData.querySelector('tCountryCodeAndName');
+  // Parse the XML data and extract the relevant information
+  const parser = new window.DOMParser();
+  const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
+  const tCountryCodeAndName = xmlDoc.querySelector(
+      'CountriesUsingCurrencyResult tCountryCodeAndName',
+  )?.children;
 
-  if (!tCountryCodeAndName) {
-    return { tCountryCodeAndName: [] };
+  if (tCountryCodeAndName) {
+    const countries = Array.from(tCountryCodeAndName).map((country) => ({
+      sISOCode: country.querySelector('sISOCode')?.textContent,
+      sName: country.querySelector('sName')?.textContent,
+    }));
+    return { tCountryCodeAndName: countries };
   }
-
-  const countries = Array.from(tCountryCodeAndName.children).map((country) => ({
-    sISOCode: country.querySelector('sISOCode')?.textContent,
-    sName: country.querySelector('sName')?.textContent,
-  }));
-
-  return { tCountryCodeAndName: countries };
 }
 
 export default async function handler(
