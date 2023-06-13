@@ -113,8 +113,7 @@ export default function Home() {
           </p>
         </a>
         <label htmlFor="currency">Currency code:</label>
-        <input id="currency" type="text" value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} />
-        <CurrencyCountries currencyCode={currencyCode} />
+        <CurrencyCountries currencyCode="USD" />
       </div>
     </main>
   )
