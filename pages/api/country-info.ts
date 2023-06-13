@@ -1,6 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
+import { DOMParser, XMLSerializer } from 'xmldom';
+
+const serializer = new XMLSerializer();
+(global as any).XMLSerializer = XMLSerializer;
+(global as any).DOMParser = DOMParser;
+(global as any).serializer = serializer;
+
 async function getCountriesUsingCurrency(currencyCode: string) {
   const data = `<?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
@@ -28,19 +35,20 @@ async function getCountriesUsingCurrency(currencyCode: string) {
   const xmlData = response.data;
 
   // Parse the XML data and extract the relevant information
-  const parser = new window.DOMParser();
+  const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
-  const tCountryCodeAndName = xmlDoc.querySelector(
-      'CountriesUsingCurrencyResult tCountryCodeAndName',
-  )?.children;
 
-  if (tCountryCodeAndName) {
-    const countries = Array.from(tCountryCodeAndName).map((country) => ({
-      sISOCode: country.querySelector('sISOCode')?.textContent,
-      sName: country.querySelector('sName')?.textContent,
+  const tCountryCodeAndNameList = xmlDoc.getElementsByTagName('m:tCountryCodeAndName');
+
+  if (tCountryCodeAndNameList.length > 0) {
+    const countries = Array.from(tCountryCodeAndNameList).map((country) => ({
+      sISOCode: country.getElementsByTagName('m:sISOCode')[0].textContent,
+      sName: country.getElementsByTagName('m:sName')[0].textContent,
     }));
     return { tCountryCodeAndName: countries };
   }
+
+  return { tCountryCodeAndName: [] };
 }
 
 export default async function handler(
