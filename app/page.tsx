@@ -1,9 +1,18 @@
 "use client";
 import Image from 'next/image'
-import {useState} from "react";
+import React, {useState} from "react";
 import CurrencyCountries from "@/pages/CurrencyCountries";
+import { useSession } from "next-auth/react"
+import LoginBtn from "@/pages/components/login-btn";
+import {Session} from "next-auth";
 
+interface HomeProps {
+  session : Session | null
+  children: React.ReactNode
+}
 export default function Home() {
+  const { data: session, status } = useSession()
+
   const [currencyCode, setCurrencyCode] = useState<string>('USD');
 
   return (
@@ -13,6 +22,7 @@ export default function Home() {
           Get started by editing&nbsp;
           <code className="font-mono font-bold">app/page.tsx</code>
         </p>
+        <LoginBtn/>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
           <a
             className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
@@ -113,8 +123,7 @@ export default function Home() {
           </p>
         </a>
         <label htmlFor="currency">Currency code:</label>
-        <input id="currency" type="text" value={currencyCode} onChange={(e) => setCurrencyCode(e.target.value)} />
-        <CurrencyCountries currencyCode={currencyCode} />
+        <CurrencyCountries currencyCode="USD" />
       </div>
     </main>
   )

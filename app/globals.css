@@ -25,3 +25,25 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+li {
+  background-color: rgba(var(--background-start-rgb), 0.9);
+  transition: background-color 0.2s ease-out;
+}
+
+li:hover {
+  background-color: rgba(var(--background-start-rgb), 1);
+}
+
+li div span:first-child {
+  display: inline-block;
+  width: 80%;
+  color: rgb(var(--foreground-rgb));
+}
+
+li div span:last-child {
+  display: inline-block;
+  width: 15%;
+  text-align: right;
+  color: rgba(var(--foreground-rgb), 0.7);
+}
